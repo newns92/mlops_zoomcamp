@@ -47,23 +47,59 @@
 
 ### GCP
 - Log into GCP and create a new project named `mlops-zoom`
+- Go to "IAM & Admin" (Identity and Access Management) --> Service Accounts
+    - **Service account** = an account with limited permissions that is assigned to a service (ex: a server or VM)
+        - Allows us to create a set of credentials that does not have full access to the owner/admin account
+    - Create a service account: "mlops-zoom-user"
+    - Grant access as "Basic" --> "Viewer"
+        - We will fine tune the permissions in a later step
+    - We do not need to "grant users access to this service account"
+        - But this is useful in a PROD environment where it may be useful for multiple users to share the same permissions
+    - To create a service account key, click the three dots under "Actions" --> "Manage keys"
+    - Click "Add key" --> "Create new key" --> "JSON"
+        - This downloads a *private* key JSON File
+- Add permissions to our service account:
+    - Click on "IAM" on the left
+    - Click "Edit principal" pencil on the right for the user account we just created
+    - Add "Storage Admin" to create and control the GCP data lake
+        - Allows us to create and modify buckets and packets (Terraform) and files
+        - In PROD, we'd actually create *custom* roles to limit user access to a particular bucket/certain resources
+            - We'd create separate service accounts for Terraform, for the data pipeline, etc. (In this course we are only making *one* for simplicity's sake)
+    - Add "Storage Object Admin" to add/control things within our bucket/data lake
+    - Add "BigQuery Admin"
+    - Click "Save"        
+- Next, we need to enable API's
+    - When the local environment interacts with the cloud enviroment, it does not interact *directly* with the resource
+    - These API's are the form of communication
+    - We have 2 API's for the IAM itself
+        - Click on the 3 bars to the left of "Google Cloud" in the upper-left
+        - Click "API's and Services" --> "Library" --> Search for "Identity and Access Management"
+        - Choose "Identity and Access Management (IAM) API" --> "Enable"
+        - Go back to the library and search for "IAM"
+        - Choose "IAM Service Account Credentials API" (which may already be enabled)
+    - Enable the Compute Engine API
 - Create an instance using Compute Engine
-    - Name it \<something\>, select your region Region and Zone (\<something\> and \<something\>) 
-    - Select an "N2" Series and "n2-standard-2" machine type with an "Ubuntu 22.04 LTS" boot disk image
+    - Name it "mlops-zoom", select your region Region and Zone ("northamerica-northeast2 (Toronto)" and "northamerica-northeast2-a", respectively) 
+    - Select an "N2" Series and "n2-standard-2" machine type with an "Ubuntu 22.04 LTS(x86/64)" boot disk image
     - For a firewall: Check both "Allow HTTP traffic" and "Allow HTTPS traffic"
 - Assign a *static* public IP address
     - By default, if you stop your GCP VM and then start it again, you will have a different external IP address, which makes your SSH config on your local useless   
     - Click on the hamburger menu on the far right of the VM instance (next to "SSH")
     - Click "View network details"
-    - Name the new static IP address, select the Network Service Tier ("Premium"), IP Version ("IPv4") and Type ("Regional")
+    - Then, on the left-hand side, under "VPC Network", click "IP addresses", then "Reserve external static IP address"
+    - Name the new static IP address "ml-zoom-ip", select the Network Service Tier ("Premium"), IP Version ("IPv4") and Type ("Regional")
     - Then select your region (*same as the VM*) and which VM to attach to (You will find it available in the drop-down if you use the same region)
     - Click "Reserve"
+    - CLI way:
+        - Run `gcloud compute addresses create ml-zoom-ip --project=<Project ID> --region=northamerica-northeast2`
+        - Then run `gcloud compute instances add-access-config mlops-zoom --project=<Project ID> --zone=northamerica-northeast2-a --address=<IP_OF_THE_NEWLY_CREATED_STATIC_ADDRESS>`
 - Enable SSH
     - https://cloud.google.com/compute/docs/connect/create-ssh-keys
     - Generate a SSH key via `ssh-keygen -t rsa -f ~/.ssh/mlops-zoom -C <VM username>`
     - Copy the content of the public key file `mlops-zoom.pub` into GCP under "Metadata" under "Compute Engine"
+    - Click "Save" at the bottom on the page
 - SSH into Instance
-    - Replace the instance public IP address via `ssh -i ~/.ssh/mlops-zoom <VVM username>@<static IP address>`
+    - Replace the instance public IP address via `ssh -i ~/.ssh/mlops-zoom <VVM username>@<static IP address>` mlops-zoom-user@34.130.192.153
         - Optional: Add host to hostname file for easy login
             - Open `~/.ssh/config` (via `nano` or not) and enter the following info:
                 ```bash
@@ -84,13 +120,16 @@
         - Then remove the installer via `rm Anaconda3-2022.05-Linux-x86_64.sh`
         - Log out of your current SSH session with `exit`
         - Log back in and you should now see a `(base)` at the beginning of your command prompt
+            - *Or* just run `source .bashrc` (executed every time we log into the machine)
     - Install Docker
         - Run `sudo apt install docker.io`
     - Install Docker-Compose
         - Run `sudo apt install docker-compose`
     - Add current user to Docker group *to run Docker without `sudo`:*
-        - Run `sudo groupadd docker` to create the `docker` group
-        - Then run `sudo usermod -aG docker $USER` to add the user to the group
+        - Run `sudo groupadd docker` to create the `docker` group (if it doesn't already exist)
+        - Then run `sudo gpasswd -a $USER docker` (`$USER` adds current user to the group)
+        - Then run `sudo service docker restart` to restart the Docker daemon
+        - Then logout and log back (Ctrl + D or `exit`) so that we don't have to type `sudo` everytime we use a `docker` command
     - Verify Installation
         - Run `which python`
         - Run `which docker`
