@@ -1,0 +1,161 @@
+## Maturity Model
+
+### Introduction
+- Ideal world = fully automate the process of reacting to an alert of dropping performance *as well as* automatically triggering a training pipeline to train a new model and then, again, *automatically* deploying it
+- This is only possible with the highest level of **MLOps maturity**, which gives a framework to think about what we need now and what we want to have in the future
+    - Level 0: Nothing Automated
+    - Level 1: - Devops, No MLOps
+    - Level 2: - Automated Training
+    - Level 3: - Automated Model Deployment
+    - Level 4: - Full MLOps and Automated Operations
+- Reference: https://learn.microsoft.com/en-us/azure/architecture/example-scenario/mlops/mlops-maturity-model
+
+### Level 0: Nothing Automated
+- Typically typically a **Proof of Concept (POC)**
+- Maybe data scientist is just playing around in a Jupyter notebook or basic script(s), which they pass over to engineers (data and/or software)
+- *Highlights*
+    - **Difficult** to manage full ML model lifecycle
+    - Teams are **disparate** and releases are **painful**
+    - Most systems exist as "black boxes," **little feedback** during/post deployment
+- *Tech*
+    - **Manual** builds, deployments, and testing of model and application
+    - *No* centralized tracking of model performance
+    - Training of model is manual
+- *People*
+    - Data scientists: siloed, not in regular communications with the larger team
+    - Data engineers (*if exists*): siloed, not in regular communications with the larger team
+    - SWE's: siloed, receive model remotely from the other team members
+- *Model Creation*
+    - Data gathered manually
+    - Compute is likely not managed
+    - Experiments aren't predictably tracked
+    - End result may be a single model file manually handed off with inputs/outputs
+- *Model Release*
+    - Manual process
+    - Scoring script may be manually created well after experiments, *not* version controlled
+    - Release handled by data scientist or data engineer alone
+- *Application Integration*
+    - *Heavily* reliant on data scientist expertise to implement
+    - Manual releases *each time*
+
+### Level 1: - Devops, No MLOps
+- Some automation is happening, with good SWE/DevOps practices in deploying models (in a similar manner web services)
+- There are *some* tests and *some* metrics (say, operational-type metrics), but the **system is not "model-aware"**
+- No experiment tracking, reproducibility, or teamwork between data scientist and different engineers
+- *Highlights*
+    - Releases are less painful than Stage 0: No MLOps, but **rely on Data Team for *every* new model**
+    - Still **limited feedback** on how well a model performs in production
+    - **Difficult to trace/reproduce results**
+- *Tech*
+    - *Automated* builds
+    - *Automated* **tests** for application code
+- *People*
+    - Data scientists: still siloed, not in regular communications with the larger team
+    - Data engineers (*if exists*): still siloed, not in regular communications with the larger team
+    - SWE's: still siloed, receive model remotely from the other team members
+- *Model Creation*
+    - Data **pipeline** gathers data **automatically**
+    - Compute is *or* isn't managed
+    - Experiments aren't predictably tracked
+    - End result may be a single model file manually handed off with inputs/outputs
+- *Model Release*
+    - Manual process
+    - Scoring script may be manually created well after experiments, *likely* version controlled
+    - Is handed off to SWE's
+- *Application Integration*
+   - Basic **integration tests** exist for the **model**
+   - *Heavily* reliant on data scientist expertise to implement model
+   - Releases **automated**
+   - **Application** code has **unit tests**
+
+### Level 2: - Automated Training
+- Finally have some (automatic) pipelines, usually only in training phase
+- Finally have some experiment tracking and a **model registry**
+- If your business/team has only 1 or 2 ML projects/**use cases**, it might be a bit too early to enter this level
+    - Might want to wait until 3-4+ models/use cases have been developed/deployed
+- *Highlights*
+    - **Training environment** is **fully managed and traceable**
+    - **Easy to reproduce** model
+    - **Releases** are **manual**, but **low friction**
+- *Tech*
+    - **Automated** model **training**
+    - **Centralized tracking** of model ***training* performance**
+    - Model management
+- *People*
+    - Data scientists: Working directly with data engineers to convert experimentation code into repeatable scripts/jobs
+    - Data engineers (*now exists*): Working with data scientists on the above
+    - SWE's: still siloed, receive model remotely from the other team members
+- *Model Creation*
+    - Data **pipeline** gathers data **automatically**
+    - **Compute managed**
+    - **Experiment** results **tracked**
+    - *Both* **training code** and **resulting models** are **version controlled**
+- *Model Release*
+    - Manual release
+    - **Scoring script is version controlled with tests**
+    - Release managed by SWE team
+- *Application Integration*
+   - Basic **integration tests** exist for the **model**
+   - *Heavily* reliant on data scientist expertise to implement model
+   - Releases **automated**
+   - **Application** code has **unit tests**
+
+### Level 3: - Automated Model Deployment
+- Might have an API call to the **ML Platform** which will respond that the model is available at its specific location that user can consume it at
+- Deployment is now a part of the pipieline, along with data prep and training
+- Will (should) have A/B tests running on two models in some manner
+- Models should be monitored starting at this level
+- *Highlights*
+    - Releases are **low friction and automatic**
+    - **Full traceability** from deployment back to original data
+    - **Entire environment managed** (train > test > production)
+- *Tech*
+    - ***Integrated* A/B testing** of model **performance** for deployment
+    - **Automated tests for *all* code**
+    - **Centralized tracking** of model **training performance**
+- *People*
+    - Data scientists: Working directly with data engineers to convert experimentation code into repeatable scripts/jobs
+    - Data engineers: Working with data scientists *and SWE's* to manage inputs/outputs
+    - SWE's: Working with data engineers to automate model integration into application code
+- *Model Creation*
+    - Data pipeline gathers data automatically
+    - Compute managed
+    - Experiment results tracked
+    - Both training code and resulting models are version controlled
+- *Model Release*
+    - **Automatic, low-friction release**
+    - Scoring script is version controlled with tests
+    - **Release managed by continuous delivery (CI/CD) pipeline**
+- *Application Integration*
+    - **Unit *and* integration tests for *each* model release**
+    - *Less* reliant on data scientist expertise to implement model
+    - **Application** code has **unit/integration tests**
+
+### Level 4: - Full MLOps and Automated Operations
+- Even in data/model-mature organizations (10s to 100s and even more models in production), we don't *need* to be at this level for *all* services
+- Should be pragmatic and only go to level 3 and level 4 *when needed/necessary*
+- *Highlights*
+    - **Full system automated and easily *monitored***
+    - **Production systems** are providing **information on how to improve** and, in **some cases**, ***automatically* improve** with new models
+    - Approaching a **zero-downtime system**
+- *Tech*
+    - Automated model training and testing
+    - Verbose, centralized metrics from deployed model
+- *People*
+    - Data scientists: Working directly with data engineers to convert experimentation code into repeatable scripts/jobs and working with SWE's to identify markers for data engineers
+    - Data engineers: Working with data scientists and SWE's to manage inputs/outputs
+    - SWE's: Working with data engineers to automate model integration into application code *and* implementing post-deployment metrics gathering
+- *Model Creation*
+    - Data pipeline gathers data automatically
+    - **Retraining triggered automatically based on production metrics**
+    - Compute managed
+    - Experiment results tracked
+    - Both training code and resulting models are version controlled
+- *Model Release*
+    - Automatic release
+    - Scoring script is version controlled with tests
+    - Release managed by continuous delivery (CI/CD) pipeline
+- *Application Integration*
+    - Unit and integration tests for each model release
+    - Less reliant on data scientist expertise to implement model
+    - Application code has unit/integration tests
