@@ -25,4 +25,58 @@
     - We can see duration of the run, user (from the machine/computer), source, detected code version, models (if logged), metrics (if logged)
     - Clicking on the run, we can see all of the above as well as the tag(s), metric(s) and the parameter(s) we logged
 
-### Hyperparameter Tuning Logging
+### Hyperparameter Tuning and Logging
+- After the first run of the `xgboost` cell, we will start to see of our experiment runs in the MLFlow UI
+- On the `http://127.0.0.1:5000/#/experiments/` page, we can filter/search for components of experiments
+    - Like tags via searching for ```tags.`model` = 'xgboost'```
+    - We can select multiple runs and then click "Compare" to compare them via a dashboard
+    - In the "Parallel Coordinates Plot", we can see how various hyperparameter values affected our metric (RMSE)
+        - Can even highlight specific metric values by clicking on the far-right y-axis labeled after the metric
+    - In the "Scatter Plot", we can plot a metric by a specific hyperparameter
+        - For example, look at `rmse` by `min_child_weight` to see a pattern emerge
+    - In the "Contour Plot", we set "reverse color" to "On", since we're minimizing our error in this case
+        - Here, we can visualize our metric for numerous hyperparameters and their values (say, `min_child_weight` and `learning_rate`)
+- Once all runs of the experiment are complete, we can sort the results by our metric's column in the "Experiments" page of the UI
+    - Here, we can grab the "best" hyperparameter values that we obtained
+    - **Also be sure to note the training time of this run**
+        - *Maybe we'd want a lower-complexity model with slightly worse error* (depends on various factors)
+- Can enable **autologging** via `mlflow.xgboost.autolog(disable=False)` before setting off an MLFlow run
+    - This gives a (potentially) more complete set of parameters, metrics, and artifacts (such as the model, a YAML file, a requirements text file, and feature importance files)
+    - Everything will be saved in the local `./mlruns/` directory
+
+### Model Management
+- https://neptune.ai/blog/ml-experiment-tracking
+- **MLOps Lifecycle:**
+    - 1\. Data Sourcing
+    - 2\. Data Labeling
+    - 3\. Data Versioning
+    - 4\. **Model Management**
+        - a\. **Experiment Tracking (cyclical)**
+            - i\. Model Architecture
+            - ii\. Model Training 
+            - iii\. Model Evaluation (*back to Model Architecture if needed (cyclical)*)
+        - b\. Model Versioning
+        - c\. Model Deployment (*potentially back to Data Labeling Stage*)
+            - i.\ Scaling Hardware (*potentially going back to Experiment Tracking stage(s)*)
+    - 5\. Prediction Monitoring
+- ML model management (*a subset of Experiment Tracking*) starts *when models go to production*:
+    - Streamlines moving models from experimentation to production
+    - Helps with model versioning
+    - Organizes model artifacts in an ML model registry
+    - Helps with testing various model versions in PROD
+    - Enables rolling back to an old model version if the new one seems to be going crazy
+- Saving models to file system directories (as `model_v1`, `model_v2`, `final_model`, etc.) is bad practice
+    - Error prone
+    - No versioning
+    - No standardization
+    - No clear model lineage (of models, datasets, hyperparameters, etc.)
+- We can do this in MLFlow in the `duration-prediction_MLFlow_model_management.ipynb` notebook
+- We can log/save models in 2 ways:
+    - 1\. As just another artifact via `mlflow.log_artifact('model_name', artifact_path='models/')`
+    - 2\. Using the `.log_model()` method via `mlflow.<framework>.log_model(model, artifact_path='models/')`
+        - Using this method, we can save models from various frameworks (TensorFlow, PyTorch, Keras, XGBoost, scikit-learn, spaCy, LightGBM, etc.) as an MLFlow Model object
+        - We can then access this model in different "flavors" (say, one time as a Python function, another time as a scikit-learn model)
+        - We can deploy these retrived/accessed models in various manners (Python function, Docker container, Kubernetes cluster, Spark batch job, SageMaker, Azure, etc.)
+    - The "Artifacts" section of the run has some code examples of how to use the logged model to make predictions on Spark and Pandas DataFrames
+        - You "load" the model by passing in the **model URI** provided
+        - Also, saved models have an `artifact_path` which indicates where the models lives, as well as different methods to *load* it (`python_function`, `xgboost` object, etc.)

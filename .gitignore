@@ -5,3 +5,4 @@ models/
 homework.md
 mlruns/
 mlflow.db
+config.py
