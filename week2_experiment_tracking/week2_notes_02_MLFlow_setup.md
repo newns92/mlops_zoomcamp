@@ -1,4 +1,27 @@
 ## MLFlow Setup
+- https://mlflow.org/docs/latest/index.html
+- **MLflow** = open-source platform for managing the end-to-end ML lifecycle that tackles 4 primary functions:
+    - **Tracking** = Tracking experiments to record and compare parameters and results
+        - an API and UI for logging parameters, code versions, metrics, and artifacts when running ML code and for later visualizing results
+        - Can use MLflow Tracking in any environment (Ex: a standalone script or a notebook) to log results to local files or to a server, then compare multiple runs
+        - Teams can also use it to compare results from different users
+    - **Projects** = Packaging ML code in a reusable, reproducible form in order to share with other data scientists or transfer to production
+        - Standard format for packaging reusable data science code
+        - Each project is simply a directory with code (or a Git repository) that uses a descriptor file, or simply "convention", to specify its dependencies and how to run the code
+            - Ex: Projects can contain a `conda.yaml` file for specifying a Python Conda environment
+        - When you use the MLflow Tracking API in a Project, MLflow automatically remembers the project version (ex: Git commit) and any parameters
+        - Can easily run existing MLflow Projects from GitHub or your own Git repo, and chain them into multi-step workflows
+    - **Models** = Managing and deploying models from a variety of ML libraries to a variety of model serving and inference platforms
+        - Offers a convention for packaging ML models in multiple "flavors", and a variety of tools to help deploy them
+        - Each Model is saved as a directory containing arbitrary files and a descriptor file that lists several “flavors” the model can be used in 
+            - Ex: a TensorFlow model can be loaded as a TensorFlow DAG, *or* as a Python function to apply to input data
+        - MLflow provides tools to deploy many common model types to diverse platforms
+            - Ex: Any model supporting the “Python function” flavor can be deployed to a Docker-based REST server, to cloud platforms such as Azure ML and AWS SageMaker, and as a user-defined function in Apache Spark for batch and streaming inference
+         If you output MLflow Models using the Tracking API, MLflow also automatically remembers which Project and run they came from
+    - **Model Registry** = Providing a central model store to collaboratively manage the full lifecycle of an MLflow Model, including model versioning, stage transitions, and annotations
+        - Offers a centralized model store, set of APIs, and UI, to collaboratively manage the full lifecycle of an MLflow Model
+        - Provides model lineage (which MLflow experiment and run produced the model), model versioning, stage transitions (Ex: from staging to production or archiving), and annotations
+- Can use it with any ML library, and in any programming language, since all functions are accessible through a REST API and CLI
 - Create a new (or activate a current) Anaconda environment named `zoom`
     - *If on the VM, create a new environment as well (if need be)*
 - Install the following Python packages, if need be (either manually or via a `requirements.txt` with `pip install -r requirements.txt`):
