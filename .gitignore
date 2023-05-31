@@ -6,3 +6,4 @@ homework.md
 mlruns/
 mlflow.db
 config.py
+output/
